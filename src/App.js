@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+// import "@babel/plugin-proposal-private-property-in-object"
 
 export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
@@ -91,7 +92,7 @@ function Square({mass, onSquareClick}) {
   return <button className="square" onClick={onSquareClick}>{mass}</button>;
 }
 
-function culculateWinner(squares: (string|null)[]): string|null {
+function culculateWinner(squares) {
   const lines = [
     [0, 1, 2],
     [3, 4, 5],
