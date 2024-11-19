@@ -80,21 +80,17 @@ function Board({xIsNext, squares, onPlay}) {
   return (
     <>
       <div className='status'>{status}</div>
-      <div className='board-row'>
-        <Square mass={squares[0]} onSquareClick={() => hundleClick(0)}/>
-        <Square mass={squares[1]} onSquareClick={() => hundleClick(1)}/>
-        <Square mass={squares[2]} onSquareClick={() => hundleClick(2)}/>
-      </div>
-      <div className='board-row'>
-        <Square mass={squares[3]} onSquareClick={() => hundleClick(3)}/>
-        <Square mass={squares[4]} onSquareClick={() => hundleClick(4)}/>
-        <Square mass={squares[5]} onSquareClick={() => hundleClick(5)}/>
-      </div>
-      <div className='board-row'>
-        <Square mass={squares[6]} onSquareClick={() => hundleClick(6)}/>
-        <Square mass={squares[7]} onSquareClick={() => hundleClick(7)}/>
-        <Square mass={squares[8]} onSquareClick={() => hundleClick(8)}/>
-      </div>
+      { (function() {
+        const board = [];
+        for (let i = 0; i < 3; i++) {
+          const boardRow = [];
+          for (let j = 0; j < 3; j++) {
+            boardRow.push(<Square mass={squares[i*3+j]} onSquareClick={() => hundleClick(i*3+j)}/>);
+          };
+          board.push(<div className='board-row'>{boardRow}</div>);
+        };
+        return board
+      }())}
     </>
   );
 }
