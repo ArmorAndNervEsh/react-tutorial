@@ -1,9 +1,12 @@
 import React, {useState} from 'react';
 // import "@babel/plugin-proposal-private-property-in-object"
 
+import ToggleButton from './components/ToggleButton';
+
 export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove,setCurrentMove] = useState(0);
+  const [isAsc, setIsAsc] = useState(true)
   const currentSquares = history[currentMove];
   const xIsNext = currentMove %2 === 0;
 
@@ -11,6 +14,14 @@ export default function Game() {
     const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
     setHistory(nextHistory);
     setCurrentMove(nextHistory.length - 1);
+  }
+
+  const hundleToggleSort = () => {
+    if(isAsc) {
+			setIsAsc(false)
+		}else{
+			setIsAsc(true)
+		}
   }
 
   const jumpTo = (nextMove) => {
@@ -40,6 +51,12 @@ export default function Game() {
         </li>
       )
     }
+  }).sort((a, b) => {
+    if (isAsc) {
+      return parseInt(a.key) - parseInt(b.key)
+    } else {
+      return parseInt(b.key) - parseInt(a.key)
+    }
   })
 
   return (
@@ -48,7 +65,8 @@ export default function Game() {
         <Board xIsNext={xIsNext} squares={currentSquares} onPlay={hundlePlay}/>
       </div>
       <div className='game-info'>
-        <ol>{moves}</ol>
+        <ToggleButton className='toggle-sort' handleChange={hundleToggleSort} />
+        <ol style={{listStyle:'none'}}>{moves}</ol>
       </div>
     </div>
   );
@@ -85,9 +103,9 @@ function Board({xIsNext, squares, onPlay}) {
         for (let i = 0; i < 3; i++) {
           const boardRow = [];
           for (let j = 0; j < 3; j++) {
-            boardRow.push(<Square mass={squares[i*3+j]} onSquareClick={() => hundleClick(i*3+j)}/>);
+            boardRow.push(<Square key={j} mass={squares[i*3+j]} onSquareClick={() => hundleClick(i*3+j)}/>);
           };
-          board.push(<div className='board-row'>{boardRow}</div>);
+          board.push(<div key={i} className='board-row'>{boardRow}</div>);
         };
         return board
       }())}
