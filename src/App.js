@@ -92,7 +92,15 @@ function Board({xIsNext, squares, onPlay}) {
   if(winner) {
     status = "Winner: " + winner;
   } else {
-    status = "Next Player: " + (xIsNext? 'X' : 'O');
+    let filled = 0
+    squares.forEach(element => {
+      filled += element? 1 : 0
+    })
+    if (filled < 9) {
+      status = "Next Player: " + (xIsNext? 'X' : 'O');
+    } else {
+      status = "Draw";
+    }
   }
 
   return (
