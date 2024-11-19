@@ -30,17 +30,19 @@ export default function Game() {
 
   const moves = history.map((squares, move) => {
     let description;
-    if (move < 9) {
+    
+    if (move < 10) {
       if (move > 0) {
-        if (move === history.length - 1) {
-          description = 'You are at move #' + move;
-          return (
-            <li key={move}>
-              <p>{description}</p>
-            </li>
-          )
+        let diff = 0;
+        (history[move]).forEach((value, index) => {
+          if (history[move][index] !== history[move-1][index]){
+            diff = index
+          }
+        })
+        if (move === history.length-1) {
+          description = 'You are at move #' + move
         } else {
-          description = 'Go to move #' + move;
+          description = 'Go to move #' + move + `(${parseInt(diff/3) + 1}, ${diff%3 + 1})`;
         }
       } else {
         description = 'Go to game start';
