@@ -1,9 +1,12 @@
 import React, {useState} from 'react';
 // import "@babel/plugin-proposal-private-property-in-object"
 
+import ToggleButton from './components/ToggleButton';
+
 export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove,setCurrentMove] = useState(0);
+  const [isAsc, setIsAsc] = useState(true)
   const currentSquares = history[currentMove];
   const xIsNext = currentMove %2 === 0;
 
@@ -13,22 +16,49 @@ export default function Game() {
     setCurrentMove(nextHistory.length - 1);
   }
 
+  const hundleToggleSort = () => {
+    if(isAsc) {
+			setIsAsc(false)
+		}else{
+			setIsAsc(true)
+		}
+  }
+
   const jumpTo = (nextMove) => {
     setCurrentMove(nextMove);
   }
 
   const moves = history.map((squares, move) => {
     let description;
-    if (move > 0) {
-      description = 'Go to move #' + move;
-    } else {
-      description = 'Go to game start';
+    
+    if (move < 10) {
+      if (move > 0) {
+        let diff = 0;
+        (history[move]).forEach((value, index) => {
+          if (history[move][index] !== history[move-1][index]){
+            diff = index
+          }
+        })
+        if (move === history.length-1) {
+          description = 'You are at move #' + move
+        } else {
+          description = 'Go to move #' + move + `(${parseInt(diff/3) + 1}, ${diff%3 + 1})`;
+        }
+      } else {
+        description = 'Go to game start';
+      }
+      return (
+        <li key={move}>
+          <button onClick={() => jumpTo(move)}>{description}</button>
+        </li>
+      )
     }
-    return (
-      <li key={move}>
-        <button onClick={() => jumpTo(move)}>{description}</button>
-      </li>
-    )
+  }).sort((a, b) => {
+    if (isAsc) {
+      return parseInt(a.key) - parseInt(b.key)
+    } else {
+      return parseInt(b.key) - parseInt(a.key)
+    }
   })
 
   return (
@@ -37,7 +67,8 @@ export default function Game() {
         <Board xIsNext={xIsNext} squares={currentSquares} onPlay={hundlePlay}/>
       </div>
       <div className='game-info'>
-        <ol>{moves}</ol>
+        <ToggleButton className='toggle-sort' handleChange={hundleToggleSort} />
+        <ol style={{listStyle:'none'}}>{moves}</ol>
       </div>
     </div>
   );
@@ -45,8 +76,9 @@ export default function Game() {
 
 function Board({xIsNext, squares, onPlay}) {
 
-  const hundleClick = (i) => {
-    if (squares[i] || culculateWinner(squares)) {
+  const hundleClick = (i) => {  
+    const [winner, line] = culculateWinner(squares);
+    if (squares[i] || winner) {
       return;
     }
     const nextSquares = squares.slice();
@@ -58,38 +90,43 @@ function Board({xIsNext, squares, onPlay}) {
     onPlay(nextSquares)
   }
 
-  const winner = culculateWinner(squares);
+  const [winner, line] = culculateWinner(squares);
   let status;
   if(winner) {
     status = "Winner: " + winner;
   } else {
-    status = "Next Player: " + (xIsNext? 'X' : 'O');
+    let filled = 0
+    squares.forEach(element => {
+      filled += element? 1 : 0
+    })
+    if (filled < 9) {
+      status = "Next Player: " + (xIsNext? 'X' : 'O');
+    } else {
+      status = "Draw";
+    }
   }
 
   return (
     <>
       <div className='status'>{status}</div>
-      <div className='board-row'>
-        <Square mass={squares[0]} onSquareClick={() => hundleClick(0)}/>
-        <Square mass={squares[1]} onSquareClick={() => hundleClick(1)}/>
-        <Square mass={squares[2]} onSquareClick={() => hundleClick(2)}/>
-      </div>
-      <div className='board-row'>
-        <Square mass={squares[3]} onSquareClick={() => hundleClick(3)}/>
-        <Square mass={squares[4]} onSquareClick={() => hundleClick(4)}/>
-        <Square mass={squares[5]} onSquareClick={() => hundleClick(5)}/>
-      </div>
-      <div className='board-row'>
-        <Square mass={squares[6]} onSquareClick={() => hundleClick(6)}/>
-        <Square mass={squares[7]} onSquareClick={() => hundleClick(7)}/>
-        <Square mass={squares[8]} onSquareClick={() => hundleClick(8)}/>
-      </div>
+      { (function() {
+        const board = [];
+        for (let i = 0; i < 3; i++) {
+          const boardRow = [];
+          for (let j = 0; j < 3; j++) {
+            let color = (line && line.includes(i*3+j)) ? '#ff0000' : '#000000';
+            boardRow.push(<Square color={color} key={j} mass={squares[i*3+j]} onSquareClick={() => hundleClick(i*3+j)}/>)
+          };
+          board.push(<div key={i} className='board-row'>{boardRow}</div>);
+        };
+        return board
+      }())}
     </>
   );
 }
 
-function Square({mass, onSquareClick}) {
-  return <button className="square" onClick={onSquareClick}>{mass}</button>;
+function Square({color, mass, onSquareClick}) {
+  return <button className="square" style={{color: color}} onClick={onSquareClick}>{mass}</button>;
 }
 
 function culculateWinner(squares) {
@@ -106,8 +143,8 @@ function culculateWinner(squares) {
   for(let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i]
     if(squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a]
+      return [squares[a], [a,b,c]]
     }
   };
-  return null;
+  return [null, []];
 }
