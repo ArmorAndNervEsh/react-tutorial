@@ -74,8 +74,9 @@ export default function Game() {
 
 function Board({xIsNext, squares, onPlay}) {
 
-  const hundleClick = (i) => {
-    if (squares[i] || culculateWinner(squares)) {
+  const hundleClick = (i) => {  
+    const [winner, line] = culculateWinner(squares);
+    if (squares[i] || winner) {
       return;
     }
     const nextSquares = squares.slice();
@@ -87,12 +88,20 @@ function Board({xIsNext, squares, onPlay}) {
     onPlay(nextSquares)
   }
 
-  const winner = culculateWinner(squares);
+  const [winner, line] = culculateWinner(squares);
   let status;
   if(winner) {
     status = "Winner: " + winner;
   } else {
-    status = "Next Player: " + (xIsNext? 'X' : 'O');
+    let filled = 0
+    squares.forEach(element => {
+      filled += element? 1 : 0
+    })
+    if (filled < 9) {
+      status = "Next Player: " + (xIsNext? 'X' : 'O');
+    } else {
+      status = "Draw";
+    }
   }
 
   return (
@@ -103,7 +112,8 @@ function Board({xIsNext, squares, onPlay}) {
         for (let i = 0; i < 3; i++) {
           const boardRow = [];
           for (let j = 0; j < 3; j++) {
-            boardRow.push(<Square key={j} mass={squares[i*3+j]} onSquareClick={() => hundleClick(i*3+j)}/>);
+            let color = (line && line.includes(i*3+j)) ? '#ff0000' : '#000000';
+            boardRow.push(<Square color={color} key={j} mass={squares[i*3+j]} onSquareClick={() => hundleClick(i*3+j)}/>)
           };
           board.push(<div key={i} className='board-row'>{boardRow}</div>);
         };
@@ -113,8 +123,8 @@ function Board({xIsNext, squares, onPlay}) {
   );
 }
 
-function Square({mass, onSquareClick}) {
-  return <button className="square" onClick={onSquareClick}>{mass}</button>;
+function Square({color, mass, onSquareClick}) {
+  return <button className="square" style={{color: color}} onClick={onSquareClick}>{mass}</button>;
 }
 
 function culculateWinner(squares) {
@@ -131,8 +141,8 @@ function culculateWinner(squares) {
   for(let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i]
     if(squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a]
+      return [squares[a], [a,b,c]]
     }
   };
-  return null;
+  return [null, []];
 }
